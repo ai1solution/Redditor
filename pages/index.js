@@ -40,7 +40,8 @@ import {
   ModalBody,
 } from '@chakra-ui/react';
 import { MoonIcon, SunIcon } from '@chakra-ui/icons';
-import { motion } from 'framer-motion';
+import PostCard from '../components/PostCard';
+import Summary, { SummarySkeleton } from '../components/Summary';
 
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK_URL;
 
@@ -50,102 +51,6 @@ function decodeHtml(str = '') {
   const div = document.createElement('div');
   div.innerHTML = str;
   return div.textContent || str;
-}
-
-function Stat({ label, value }) {
-  const bg = useColorModeValue('gray.50', 'whiteAlpha.100');
-  return (
-    <Box p={4} rounded="md" bg={bg}>
-      <Text fontSize="sm" color="gray.500">{label}</Text>
-      <Heading size="md">{value}</Heading>
-    </Box>
-  );
-}
-
-function Summary({ summary }) {
-  if (!summary) return null;
-  return (
-    <Stack spacing={4}>
-      <Heading size="md">Analysis Summary</Heading>
-      <SimpleGrid columns={{ base: 2, md: 2 }} spacing={4}>
-        <Stat label="High Engagement Posts" value={summary.highEngagementPosts ?? 0} />
-        <Stat label="Trending Posts" value={summary.trendingPosts ?? 0} />
-      </SimpleGrid>
-      <Box>
-        <Heading size="sm" mb={2}>Best Growth Opportunities</Heading>
-        <Stack spacing={2}>
-          {(summary.bestGrowthOpportunities || []).map((item, idx) => (
-            <Tag key={idx} size="lg" colorScheme="purple" variant="subtle">{decodeHtml(item)}</Tag>
-          ))}
-        </Stack>
-      </Box>
-    </Stack>
-  );
-}
-
-const MotionBox = motion(Box);
-
-function PostCard({ post, onOpenImage }) {
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const isImage = post?.url?.match(/\.(png|jpg|jpeg|gif|webp)$/i);
-
-  return (
-    <MotionBox
-      borderWidth="1px"
-      borderColor={borderColor}
-      rounded="md"
-      p={4}
-      bg={cardBg}
-      shadow="sm"
-      whileHover={{ y: -4, boxShadow: 'var(--chakra-shadows-md)' }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-    >
-      <HStack spacing={2} color="gray.500" fontSize="sm" mb={2}>
-        <ChakraLink href={`https://www.reddit.com/${post.subreddit?.replace(/^\//, '')}`} isExternal fontWeight="semibold">
-          {post.subreddit}
-        </ChakraLink>
-        <Text>•</Text>
-        <Text>Posted by</Text>
-        <ChakraLink href={`https://www.reddit.com/${post.author}`} isExternal>
-          {post.author}
-        </ChakraLink>
-      </HStack>
-
-      <Heading size="sm" mb={2}>
-        <ChakraLink href={post.url} isExternal>{decodeHtml(post.title)}</ChakraLink>
-      </Heading>
-
-      {isImage ? (
-        <Box overflow="hidden" rounded="md" mb={3} cursor="zoom-in" onClick={() => onOpenImage?.(post)}>
-          <Image src={post.url} alt={post.title} objectFit="cover" w="100%" maxH="300px"/>
-        </Box>
-      ) : null}
-
-      <HStack spacing={4} color="gray.600" fontSize="sm" mb={3}>
-        <Text>⬆️ {Intl.NumberFormat('en', { notation: 'compact' }).format(post.upvotes)}</Text>
-        <Text>💬 {Intl.NumberFormat('en', { notation: 'compact' }).format(post.comments)} comments</Text>
-        <Tag size="sm" colorScheme={post.engagement === 'high' ? 'green' : post.engagement === 'medium' ? 'orange' : 'gray'}>
-          {post.engagement} engagement
-        </Tag>
-        <Badge colorScheme="blue" variant="subtle">AI</Badge>
-      </HStack>
-
-      {post.aiInsight ? (
-        <Box bg={useColorModeValue('orange.50', 'orange.900')} p={3} rounded="md" mb={2}>
-          <Text fontWeight="semibold">AI Insight:</Text>
-          <Text>{post.aiInsight}</Text>
-        </Box>
-      ) : null}
-
-      {post.growthTip ? (
-        <Box bg={useColorModeValue('purple.50', 'purple.900')} p={3} rounded="md">
-          <Text fontWeight="semibold">💡 Growth Opportunity</Text>
-          <Text>{post.growthTip}</Text>
-        </Box>
-      ) : null}
-    </MotionBox>
-  );
 }
 
 export default function Home() {
@@ -279,15 +184,22 @@ export default function Home() {
           ) : null}
 
           {loading ? (
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Box key={i} p={4} rounded="md" bg={useColorModeValue('white', 'gray.800')} borderWidth="1px">
-                  <Skeleton height="16px" mb={2} />
-                  <Skeleton height="24px" mb={3} />
-                  <Skeleton height="160px" mb={3} />
-                  <SkeletonText noOfLines={3} spacing="2" />
-                </Box>
-              ))}
+            <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6}>
+              <GridItem colSpan={{ base: 1, lg: 2 }}>
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Box key={i} p={4} rounded="md" bg={useColorModeValue('white', 'gray.800')} borderWidth="1px">
+                      <Skeleton height="16px" mb={2} />
+                      <Skeleton height="24px" mb={3} />
+                      <Skeleton height="160px" mb={3} />
+                      <SkeletonText noOfLines={3} spacing="2" />
+                    </Box>
+                  ))}
+                </SimpleGrid>
+              </GridItem>
+              <GridItem colSpan={1}>
+                <SummarySkeleton />
+              </GridItem>
             </SimpleGrid>
           ) : null}
 
