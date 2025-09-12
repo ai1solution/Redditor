@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Trend Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Reddit-style Header -->
+    <header class="reddit-header">
+        <div class="header-container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <h1 class="reddit-logo">Reddit Trend Analyzer</h1>
+                </div>
+                <nav class="header-nav">
+                    <span class="nav-item">Popular</span>
+                    <span class="nav-item">All</span>
+                    <span class="nav-item">Trending</span>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="reddit-container">
+            <!-- Search Form Section -->
+            <div class="content-area">
+                <section class="form-section">
+                    <div class="post-header">
+                        <h2 class="section-title">Create Analysis</h2>
+                        <p class="section-subtitle">Analyze Reddit trends and find growth opportunities</p>
+                    </div>
+                    
+                    <form id="analyzeForm" class="reddit-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="reddit-label" for="keywords">Keywords</label>
+                                <input 
+                                    type="text" 
+                                    id="keywords" 
+                                    class="reddit-input" 
+                                    placeholder="Enter keywords (comma separated)"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label class="reddit-label" for="subreddit">Subreddit</label>
+                                <input 
+                                    type="text" 
+                                    id="subreddit" 
+                                    class="reddit-input" 
+                                    placeholder="Enter subreddit (e.g., n8n)"
+                                >
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="reddit-btn reddit-btn--primary" id="analyzeBtn">
+                                <span class="btn-text">Analyze</span>
+                                <div class="reddit-spinner hidden" id="spinner"></div>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="reddit-alert reddit-alert--error hidden">
+                    <div class="alert-content">
+                        <span class="alert-icon">⚠️</span>
+                        <p id="errorText" class="alert-text"></p>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <section id="resultsSection" class="results-section hidden">
+                    <!-- Results Header -->
+                    <div class="results-header">
+                        <h2 class="results-title">Analysis Results</h2>
+                        <div class="results-meta">
+                            <span class="meta-item" id="timestamp"></span>
+                            <span class="meta-separator">•</span>
+                            <span class="meta-item" id="totalPosts"></span>
+                        </div>
+                    </div>
+
+                    <!-- Posts Feed -->
+                    <div class="posts-feed" id="postsGrid">
+                        <!-- Posts will be dynamically inserted here -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div id="summarySection" class="sidebar-card hidden">
+                    <div class="sidebar-header">
+                        <h3 class="sidebar-title">Analysis Summary</h3>
+                    </div>
+                    <div class="sidebar-content">
+                        <div class="summary-stats">
+                            <div class="stat-row">
+                                <span class="stat-number" id="highEngagementCount">0</span>
+                                <span class="stat-label">High Engagement Posts</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-number" id="trendingCount">0</span>
+                                <span class="stat-label">Trending Posts</span>
+                            </div>
+                        </div>
+                        
+                        <div class="growth-opportunities">
+                            <h4 class="opportunities-title">Best Growth Opportunities</h4>
+                            <ul id="growthList" class="opportunities-list">
+                                <!-- Growth opportunities will be populated here -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-card">
+                    <div class="sidebar-header">
+                        <h3 class="sidebar-title">About</h3>
+                    </div>
+                    <div class="sidebar-content">
+                        <p class="about-text">Analyze Reddit trends and discover the best posts for engagement and growth opportunities.</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
