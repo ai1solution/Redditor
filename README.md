@@ -1,58 +1,48 @@
-# Reddit Trend Analyzer
+# Next Redditor (Next.js + Chakra UI)
 
-A modern web application that analyzes Reddit trends and provides insights for growth opportunities. Built with vanilla HTML, CSS, and JavaScript with a Reddit-style UI.
+A Next.js web UI for the Reddit Trend Analyzer using Chakra UI. It preserves existing functionality:
 
-## Features
+- Form with Keywords and optional Subreddit
+- Sends POST to your n8n webhook
+- Parses array response shape `[ { success, timestamp, totalPosts, posts, summary } ]`
+- Displays results grid and an analysis summary
+- Light/Dark mode toggle
 
-- 🔍 **Trend Analysis**: Analyze Reddit posts by keywords and subreddit
-- 📊 **Growth Insights**: Identify high-engagement posts and trending content
-- 🎨 **Authentic Reddit UI**: Pixel-perfect recreation of Reddit's design
-- 📱 **Responsive Design**: Works seamlessly on all devices
-- ⚡ **Real-time Updates**: Dynamic loading states and animations
-- 🌐 **API Integration**: Connects to n8n webhook for data processing
+## Getting Started
 
-## Live Demo
+1. Install dependencies
 
-Visit the live application: [Reddit Trend Analyzer](https://your-username.github.io/Redditor)
-
-## Usage
-
-1. Enter keywords (comma-separated) you want to analyze
-2. Specify a subreddit to focus your analysis
-3. Click "Analyze" to get Reddit trend insights
-4. View results with engagement metrics and growth opportunities
-
-## Technology Stack
-
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Styling**: CSS Custom Properties, Flexbox, Grid
-- **API**: n8n webhook integration
-- **Deployment**: GitHub Pages
-
-## Local Development
-
-1. Clone the repository
-2. Open `index.html` in your browser or use a local server:
-   ```bash
-   python -m http.server 8000
-   ```
-3. Navigate to `http://localhost:8000`
-
-## API Configuration
-
-The application connects to an n8n webhook for Reddit data analysis. Update the API URL in `app.js`:
-
-```javascript
-const apiUrl = `https://your-n8n-instance.cloud/webhook/reddit-analyze`;
+```bash
+npm install
 ```
 
-## Contributing
+2. Configure environment
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+Create `.env.local` in the project root with your n8n webhook URL:
 
-## License
+```bash
+NEXT_PUBLIC_WEBHOOK_URL=https://your-n8n-instance/webhook/reddit-analyze
+```
 
-MIT License - feel free to use this project for your own purposes.
+3. Run the dev server
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000 in your browser.
+
+## Project Structure
+
+- `pages/_app.js`: Chakra provider and theme setup
+- `pages/index.js`: Main page (form, results, summary)
+
+## Notes
+
+- The webhook response from n8n may be wrapped in an array. The page normalizes with `const payload = Array.isArray(parsed) ? parsed[0] : parsed;`.
+- Titles with HTML entities are decoded for display.
+- Image links are previewed when the `url` ends with an image extension.
+
+## Deployment
+
+- Any standard Next.js hosting works. Ensure `NEXT_PUBLIC_WEBHOOK_URL` is set in the hosting environment.
