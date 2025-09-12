@@ -25,8 +25,22 @@ import {
   Divider,
   SimpleGrid,
   Spinner,
+  Badge,
+  Skeleton,
+  SkeletonText,
+  useToast,
+  Kbd,
+  Tooltip,
+  Select,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
 } from '@chakra-ui/react';
 import { MoonIcon, SunIcon } from '@chakra-ui/icons';
+import { motion } from 'framer-motion';
 
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK_URL;
 
@@ -69,13 +83,24 @@ function Summary({ summary }) {
   );
 }
 
-function PostCard({ post }) {
+const MotionBox = motion(Box);
+
+function PostCard({ post, onOpenImage }) {
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const isImage = post?.url?.match(/\.(png|jpg|jpeg|gif|webp)$/i);
 
   return (
-    <Box borderWidth="1px" borderColor={borderColor} rounded="md" p={4} bg={cardBg} shadow="sm">
+    <MotionBox
+      borderWidth="1px"
+      borderColor={borderColor}
+      rounded="md"
+      p={4}
+      bg={cardBg}
+      shadow="sm"
+      whileHover={{ y: -4, boxShadow: 'var(--chakra-shadows-md)' }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    >
       <HStack spacing={2} color="gray.500" fontSize="sm" mb={2}>
         <ChakraLink href={`https://www.reddit.com/${post.subreddit?.replace(/^\//, '')}`} isExternal fontWeight="semibold">
           {post.subreddit}
@@ -92,7 +117,7 @@ function PostCard({ post }) {
       </Heading>
 
       {isImage ? (
-        <Box overflow="hidden" rounded="md" mb={3}>
+        <Box overflow="hidden" rounded="md" mb={3} cursor="zoom-in" onClick={() => onOpenImage?.(post)}>
           <Image src={post.url} alt={post.title} objectFit="cover" w="100%" maxH="300px"/>
         </Box>
       ) : null}
@@ -103,6 +128,7 @@ function PostCard({ post }) {
         <Tag size="sm" colorScheme={post.engagement === 'high' ? 'green' : post.engagement === 'medium' ? 'orange' : 'gray'}>
           {post.engagement} engagement
         </Tag>
+        <Badge colorScheme="blue" variant="subtle">AI</Badge>
       </HStack>
 
       {post.aiInsight ? (
@@ -118,7 +144,7 @@ function PostCard({ post }) {
           <Text>{post.growthTip}</Text>
         </Box>
       ) : null}
-    </Box>
+    </MotionBox>
   );
 }
 
@@ -129,6 +155,10 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [data, setData] = useState(null);
+  const [filter, setFilter] = useState('all'); // all | high
+  const [sort, setSort] = useState('top'); // top | comments | recent
+  const toast = useToast();
+  const [imagePost, setImagePost] = useState(null);
 
   const pageBg = useColorModeValue('gray.50', 'gray.900');
 
@@ -138,6 +168,7 @@ export default function Home() {
 
     if (!keywords && !subreddit) {
       setError('Please enter keywords or subreddit to analyze.');
+      toast({ title: 'Missing input', description: 'Enter keywords or a subreddit.', status: 'warning' });
       return;
     }
 
@@ -167,12 +198,24 @@ export default function Home() {
         throw new Error(`Request failed: ${res.status}`);
       }
       setData(payload);
+      toast({ title: 'Analysis complete', description: `Found ${payload.totalPosts} posts`, status: 'success' });
     } catch (err) {
       setError(err.message || 'Failed to analyze.');
+      toast({ title: 'Error', description: err.message || 'Failed to analyze.', status: 'error' });
     } finally {
       setLoading(false);
     }
   }
+
+  const filteredSortedPosts = (() => {
+    if (!data?.posts) return [];
+    let posts = [...data.posts];
+    if (filter === 'high') posts = posts.filter((p) => (p.engagement || '').toLowerCase() === 'high');
+    if (sort === 'top') posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+    if (sort === 'comments') posts.sort((a, b) => (b.comments || 0) - (a.comments || 0));
+    if (sort === 'recent') posts = posts; // Backend lacks per-post time; keep as-is
+    return posts;
+  })();
 
   return (
     <Box minH="100vh" bg={pageBg}>
@@ -204,8 +247,26 @@ export default function Home() {
               </Box>
             </SimpleGrid>
 
-            <Flex mt={4}>
+            <Flex mt={4} gap={3} align="center" wrap="wrap">
               <Button type="submit" colorScheme="orange" isLoading={loading} loadingText="Analyzing...">Analyze</Button>
+              <HStack>
+                <Tooltip label="Filter posts by engagement">
+                  <Select size="sm" value={filter} onChange={(e) => setFilter(e.target.value)} w="auto">
+                    <option value="all">All</option>
+                    <option value="high">High engagement</option>
+                  </Select>
+                </Tooltip>
+                <Tooltip label="Sort posts">
+                  <Select size="sm" value={sort} onChange={(e) => setSort(e.target.value)} w="auto">
+                    <option value="top">Top upvotes</option>
+                    <option value="comments">Most comments</option>
+                    <option value="recent">Recent</option>
+                  </Select>
+                </Tooltip>
+              </HStack>
+              <Text ml="auto" color="gray.500" fontSize="sm" display={{ base: 'none', md: 'block' }}>
+                Press <Kbd>Enter</Kbd> to analyze
+              </Text>
             </Flex>
           </Box>
 
@@ -215,6 +276,19 @@ export default function Home() {
               <AlertTitle>Error:</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
+          ) : null}
+
+          {loading ? (
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Box key={i} p={4} rounded="md" bg={useColorModeValue('white', 'gray.800')} borderWidth="1px">
+                  <Skeleton height="16px" mb={2} />
+                  <Skeleton height="24px" mb={3} />
+                  <Skeleton height="160px" mb={3} />
+                  <SkeletonText noOfLines={3} spacing="2" />
+                </Box>
+              ))}
+            </SimpleGrid>
           ) : null}
 
           {data ? (
@@ -231,8 +305,8 @@ export default function Home() {
               <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6}>
                 <GridItem colSpan={{ base: 1, lg: 2 }}>
                   <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                    {(data.posts || []).map((p, idx) => (
-                      <PostCard key={idx} post={p} />
+                    {filteredSortedPosts.map((p, idx) => (
+                      <PostCard key={idx} post={p} onOpenImage={setImagePost} />
                     ))}
                   </SimpleGrid>
                 </GridItem>
@@ -244,6 +318,19 @@ export default function Home() {
           ) : null}
         </Stack>
       </Container>
+
+      <Modal isOpen={!!imagePost} onClose={() => setImagePost(null)} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>{imagePost ? decodeHtml(imagePost.title) : ''}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {imagePost ? (
+              <Image src={imagePost.url} alt={imagePost.title} w="100%" />
+            ) : null}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 }
