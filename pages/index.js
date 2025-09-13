@@ -143,17 +143,22 @@ export default function Home() {
         body: JSON.stringify(body),
       });
 
+      if (!res.ok) {
+        throw new Error(`Request failed: ${res.status} ${res.statusText}`);
+      }
+
       const rawText = await res.text();
       let parsed;
       try {
         parsed = JSON.parse(rawText);
       } catch (err) {
-        parsed = { success: true, posts: [], timestamp: new Date().toISOString(), totalPosts: 0, summary: { highEngagementPosts: 0, trendingPosts: 0, bestGrowthOpportunities: [] } };
+        throw new Error('Invalid JSON response from webhook');
       }
 
+      // Handle array response format from webhook
       const payload = Array.isArray(parsed) ? parsed[0] : parsed;
-      if (!res.ok || !payload?.success) {
-        throw new Error(`Request failed: ${res.status}`);
+      if (!payload?.success) {
+        throw new Error(payload?.error || 'Webhook returned unsuccessful response');
       }
       setData(payload);
       toast({ title: 'Analysis complete', description: `Found ${payload.totalPosts} posts`, status: 'success' });
@@ -265,23 +270,19 @@ export default function Home() {
           ) : null}
 
           {loading ? (
-            <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6}>
-              <GridItem colSpan={{ base: 1, lg: 2 }}>
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Box key={i} layerStyle="card">
-                      <Skeleton height="16px" mb={2} />
-                      <Skeleton height="24px" mb={3} />
-                      <Skeleton height="160px" mb={3} />
-                      <SkeletonText noOfLines={3} spacing="2" />
-                    </Box>
-                  ))}
-                </SimpleGrid>
-              </GridItem>
-              <GridItem colSpan={1}>
-                <SummarySkeleton />
-              </GridItem>
-            </SimpleGrid>
+            <Stack spacing={6}>
+              <SummarySkeleton />
+              <SimpleGrid columns={{ base: 1 }} spacing={4}>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Box key={i} layerStyle="card">
+                    <Skeleton height="16px" mb={2} />
+                    <Skeleton height="24px" mb={3} />
+                    <Skeleton height="160px" mb={3} />
+                    <SkeletonText noOfLines={3} spacing="2" />
+                  </Box>
+                ))}
+              </SimpleGrid>
+            </Stack>
           ) : null}
 
           {data ? (
