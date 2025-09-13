@@ -32,6 +32,7 @@ import {
   Kbd,
   Tooltip,
   Select,
+  Switch,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -64,8 +65,51 @@ export default function Home() {
   const [sort, setSort] = useState('top'); // top | comments | recent
   const toast = useToast();
   const [imagePost, setImagePost] = useState(null);
+  const [testMode, setTestMode] = useState(false);
+  const [feedView, setFeedView] = useState('all'); // popular | all | trending
 
   const pageBg = useColorModeValue('gray.50', 'gray.900');
+
+  // Mock payload for Test Mode (matches backend response shape)
+  function getMockPayload() {
+    return {
+      success: true,
+      timestamp: new Date().toISOString(),
+      totalPosts: 2,
+      posts: [
+        {
+          title: 'Nintendo &amp; The Pokemon Company’s new patents are vile.',
+          subreddit: 'r/gaming',
+          author: 'u/Miserable_Speed5474',
+          upvotes: 22864,
+          comments: 1898,
+          url: 'https://i.redd.it/cetod1zjvfof1.jpeg',
+          aiInsight: "Encourage discussion on the implications of Nintendo's patents on the gaming industry",
+          engagement: 'high',
+          growthTip: 'Commenting on this post can grow a personal account by establishing the user as an active participant in the gaming community and a advocate for fair patent practices',
+        },
+        {
+          title: 'I made an n8n Cheat Sheet! \u2728',
+          subreddit: 'r/n8n',
+          author: 'u/Superb_Net_7426',
+          upvotes: 1956,
+          comments: 81,
+          url: 'https://i.redd.it/w4ult2xaxjue1.png',
+          aiInsight: 'Provide valuable feedback or suggestions for the n8n Cheat Sheet',
+          engagement: 'high',
+          growthTip: 'Commenting on this post can grow your personal account by establishing yourself as a knowledgeable member of the n8n community',
+        },
+      ],
+      summary: {
+        highEngagementPosts: 2,
+        trendingPosts: 0,
+        bestGrowthOpportunities: [
+          'Nintendo &amp; The Pokemon Company’s new patents are vile.',
+          'I made an n8n Cheat Sheet! \u2728',
+        ],
+      },
+    };
+  }
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -80,6 +124,15 @@ export default function Home() {
     setLoading(true);
     setData(null);
     try {
+      // Test Mode: mock the API call
+      if (testMode) {
+        await new Promise((r) => setTimeout(r, 700));
+        const payload = getMockPayload();
+        setData(payload);
+        toast({ title: 'Test mode', description: `Loaded ${payload.totalPosts} mock posts`, status: 'info' });
+        return;
+      }
+
       const body = {};
       if (keywords) body.keywords = keywords;
       if (subreddit) body.subreddit = subreddit;
@@ -124,20 +177,23 @@ export default function Home() {
 
   return (
     <Box minH="100vh" bg={pageBg}>
-      <Box borderBottomWidth="1px" bg={useColorModeValue('white', 'gray.800')} boxShadow={useColorModeValue('sm', 'sm')}> 
-        <Container maxW="6xl" py={4}>
+      <Box borderBottomWidth="1px" bg={useColorModeValue('white', 'gray.800')}>
+        <Container py={4}>
           <Flex align="center" justify="space-between">
             <Heading size="md" color="brand.500">Reddit Trend Analyzer</Heading>
-            <Button onClick={toggleColorMode} leftIcon={<Icon as={colorMode === 'light' ? MoonIcon : SunIcon} /> }>
-              {colorMode === 'light' ? 'Dark' : 'Light'}
-            </Button>
+            <HStack>
+              {testMode ? <Badge colorScheme="purple">Test Mode</Badge> : null}
+              <Button onClick={toggleColorMode} leftIcon={<Icon as={colorMode === 'light' ? MoonIcon : SunIcon} /> }>
+                {colorMode === 'light' ? 'Dark' : 'Light'}
+              </Button>
+            </HStack>
           </Flex>
         </Container>
       </Box>
 
-      <Container maxW="6xl" py={8}>
+      <Container py={8}>
         <Stack spacing={6}>
-          <Box as="form" onSubmit={onSubmit} bg={useColorModeValue('white', 'gray.800')} p={6} rounded="md" shadow="sm">
+          <Box as="form" onSubmit={onSubmit} layerStyle="card">
             <Heading size="md" mb={1} color={useColorModeValue('gray.800', 'white')}>Create Analysis</Heading>
             <Text color="gray.500" mb={4}>Analyze Reddit trends and find growth opportunities</Text>
 
@@ -154,6 +210,16 @@ export default function Home() {
 
             <Flex mt={4} gap={3} align="center" wrap="wrap">
               <Button type="submit" colorScheme="brand" isLoading={loading} loadingText="Analyzing...">Analyze</Button>
+              <Tooltip label="Toggle test mode (use mock data instead of calling the API)">
+                <Button
+                  size="sm"
+                  variant={testMode ? 'solid' : 'outline'}
+                  colorScheme="purple"
+                  onClick={() => setTestMode((v) => !v)}
+                >
+                  {testMode ? 'Test mode: ON' : 'Test mode: OFF'}
+                </Button>
+              </Tooltip>
               <HStack>
                 <Tooltip label="Filter posts by engagement">
                   <Select size="sm" value={filter} onChange={(e) => setFilter(e.target.value)} w="auto">
@@ -188,7 +254,7 @@ export default function Home() {
               <GridItem colSpan={{ base: 1, lg: 2 }}>
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <Box key={i} p={4} rounded="md" bg={useColorModeValue('white', 'gray.800')} borderWidth="1px">
+                    <Box key={i} layerStyle="card">
                       <Skeleton height="16px" mb={2} />
                       <Skeleton height="24px" mb={3} />
                       <Skeleton height="160px" mb={3} />
@@ -207,16 +273,23 @@ export default function Home() {
             <Stack spacing={6}>
               <Flex align="center" justify="space-between">
                 <Heading size="md" color={useColorModeValue('gray.800', 'white')}>Analysis Results</Heading>
-                <HStack color="gray.500" fontSize="sm">
-                  <Text>{new Date(data.timestamp).toLocaleString()}</Text>
-                  <Text>•</Text>
-                  <Text>{data.totalPosts} {data.totalPosts === 1 ? 'post' : 'posts'}</Text>
+                <HStack spacing={6}>
+                  <HStack color="gray.500" fontSize="sm">
+                    <Text>{new Date(data.timestamp).toLocaleString()}</Text>
+                    <Text>•</Text>
+                    <Text>{data.totalPosts} {data.totalPosts === 1 ? 'post' : 'posts'}</Text>
+                  </HStack>
+                  <HStack spacing={1}>
+                    <Button size="sm" variant={feedView === 'popular' ? 'solid' : 'outline'} onClick={() => { setFeedView('popular'); setSort('top'); setFilter('all'); }}>Popular</Button>
+                    <Button size="sm" variant={feedView === 'all' ? 'solid' : 'outline'} onClick={() => { setFeedView('all'); setFilter('all'); }}>All</Button>
+                    <Button size="sm" variant={feedView === 'trending' ? 'solid' : 'outline'} onClick={() => { setFeedView('trending'); setSort('comments'); setFilter('all'); }}>Trending</Button>
+                  </HStack>
                 </HStack>
               </Flex>
 
-              <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6}>
-                <GridItem colSpan={{ base: 1, lg: 2 }}>
-                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+              <SimpleGrid columns={{ base: 1, lg: 1 }} spacing={6}>
+                <GridItem colSpan={{ base: 1, lg: 1 }}>
+                  <SimpleGrid columns={{ base: 1 }} spacing={4}>
                     {filteredSortedPosts.map((p, idx) => (
                       <PostCard key={idx} post={p} onOpenImage={setImagePost} />
                     ))}

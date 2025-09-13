@@ -21,9 +21,8 @@ function Stat({ label, value }) {
 }
 
 export function SummarySkeleton() {
-  const cardBg = useColorModeValue('white', 'gray.800');
   return (
-    <Box p={4} rounded="md" bg={cardBg} borderWidth="1px">
+    <Box layerStyle="card">
       <Skeleton height="20px" mb={4} />
       <SimpleGrid columns={2} spacing={4}>
         <Skeleton height="60px" />
@@ -41,20 +40,24 @@ export function SummarySkeleton() {
 export default function Summary({ summary }) {
   if (!summary) return null;
   return (
-    <Stack spacing={4}>
-      <Heading size="md">Analysis Summary</Heading>
-      <SimpleGrid columns={{ base: 2, md: 2 }} spacing={4}>
-        <Stat label="High Engagement Posts" value={summary.highEngagementPosts ?? 0} />
-        <Stat label="Trending Posts" value={summary.trendingPosts ?? 0} />
-      </SimpleGrid>
-      <Box>
-        <Heading size="sm" mb={2}>Best Growth Opportunities</Heading>
-        <Stack spacing={2}>
-          {(summary.bestGrowthOpportunities || []).map((item, idx) => (
-            <Tag key={idx} size="lg" colorScheme="purple" variant="subtle">{decodeHtml(item)}</Tag>
-          ))}
-        </Stack>
+    <Box borderWidth="1px" borderColor="borderSubtle" rounded="md" overflow="hidden" bg="bgCard" boxShadow="sm">
+      <Box bg="redditBlue" color="white" px={4} py={3}>
+        <Heading size="sm">Analysis Summary</Heading>
       </Box>
-    </Stack>
+      <Box p={4}>
+        <SimpleGrid columns={{ base: 2, md: 2 }} spacing={4}>
+          <Stat label="High Engagement Posts" value={summary.highEngagementPosts ?? 0} />
+          <Stat label="Trending Posts" value={summary.trendingPosts ?? 0} />
+        </SimpleGrid>
+        <Box mt={4}>
+          <Heading size="sm" mb={2}>Best Growth Opportunities</Heading>
+          <Stack spacing={2}>
+            {(summary.bestGrowthOpportunities || []).map((item, idx) => (
+              <Tag key={idx} size="lg" colorScheme="purple" variant="subtle">{decodeHtml(item)}</Tag>
+            ))}
+          </Stack>
+        </Box>
+      </Box>
+    </Box>
   );
 }

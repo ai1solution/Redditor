@@ -13,6 +13,8 @@ import {
   IconButton,
   Tooltip,
   useToast,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { ChevronUpIcon, ChevronDownIcon, CopyIcon } from '@chakra-ui/icons';
@@ -40,16 +42,13 @@ export default function PostCard({ post, onOpenImage }) {
 
   return (
     <MotionBox
-      borderWidth="1px"
-      borderColor={borderColor}
-      rounded="md"
-      p={4}
-      bg={cardBg}
-      shadow="sm"
-      whileHover={{ y: -4, boxShadow: 'var(--chakra-shadows-md)' }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      layerStyle="card"
+      whileHover={{ y: -2, boxShadow: 'var(--chakra-shadows-md)' }}
+      transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+      w="auto"
+      overflow="hidden"
     >
-      <HStack align="start" spacing={4}>
+      <HStack align="start" spacing={4} w="auto">
         {/* Vote column */}
         <VStack spacing={1} align="center" minW="40px">
           <IconButton
@@ -72,30 +71,36 @@ export default function PostCard({ post, onOpenImage }) {
         </VStack>
 
         {/* Content */}
-        <Box flex="1">
-          <HStack spacing={2} color="gray.500" fontSize="sm" mb={1}>
-            <ChakraLink href={`https://www.reddit.com/${post.subreddit?.replace(/^\//, '')}`} isExternal fontWeight="semibold" color="redditBlue">
-              {post.subreddit}
-            </ChakraLink>
-            <Text>•</Text>
-            <Text>Posted by</Text>
-            <ChakraLink href={`https://www.reddit.com/${post.author}`} isExternal>
-              {post.author}
-            </ChakraLink>
-          </HStack>
+        <Box flex="1" minW={0}>
+          <Wrap spacing={2} fontSize="sm" mb={1} color="textMuted">
+            <WrapItem>
+              <ChakraLink href={`https://www.reddit.com/${post.subreddit?.replace(/^\//, '')}`} isExternal fontWeight="semibold" color="redditBlue">
+                {post.subreddit}
+              </ChakraLink>
+            </WrapItem>
+            <WrapItem><Text>•</Text></WrapItem>
+            <WrapItem><Text>Posted by</Text></WrapItem>
+            <WrapItem>
+              <ChakraLink href={`https://www.reddit.com/${post.author}`} isExternal>
+                {post.author}
+              </ChakraLink>
+            </WrapItem>
+          </Wrap>
 
-          <Heading size="sm" mb={2}>
-            <ChakraLink href={post.url} isExternal>{decodeHtml(post.title)}</ChakraLink>
+          <Heading size="sm" mb={3} wordBreak="break-word" overflowWrap="anywhere">
+            <ChakraLink href={post.url} isExternal sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', display: 'inline' }}>
+              {decodeHtml(post.title)}
+            </ChakraLink>
           </Heading>
 
           {isImage ? (
             <Box overflow="hidden" rounded="md" mb={3} cursor="zoom-in" onClick={() => onOpenImage?.(post)}>
-              <Image src={post.url} alt={post.title} objectFit="cover" w="100%" maxH="300px"/>
+              <Image src={post.url} alt={post.title} objectFit="cover" w="100%" maxH="260px"/>
             </Box>
           ) : null}
 
-          <HStack spacing={4} color="gray.600" fontSize="sm" mb={3}>
-            <Text>💬 {Intl.NumberFormat('en', { notation: 'compact' }).format(post.comments)} comments</Text>
+          <HStack spacing={4} fontSize="sm" mb={3} color="textMuted">
+            <Text wordBreak="break-word">💬 {Intl.NumberFormat('en', { notation: 'compact' }).format(post.comments)} comments</Text>
             <Tag size="sm" colorScheme={post.engagement === 'high' ? 'green' : post.engagement === 'medium' ? 'orange' : 'gray'}>
               {post.engagement} engagement
             </Tag>
@@ -103,17 +108,17 @@ export default function PostCard({ post, onOpenImage }) {
           </HStack>
 
           {post.aiInsight ? (
-            <Box bg={useColorModeValue('orange.50', 'orange.900')} p={3} rounded="md" mb={2}>
-              <Text fontWeight="semibold">AI Insight:</Text>
-              <Text>{post.aiInsight}</Text>
+            <Box bg={useColorModeValue('orange.50', 'orange.900')} p={3} rounded="md" mb={3}>
+              <Text fontWeight="semibold" mb={1}>AI Insight</Text>
+              <Text wordBreak="break-word" overflowWrap="anywhere">{post.aiInsight}</Text>
             </Box>
           ) : null}
 
           {post.growthTip ? (
             <Box bg={useColorModeValue('purple.50', 'purple.900')} p={3} rounded="md" display="flex" alignItems="start" justifyContent="space-between" gap={3}>
               <Box>
-                <Text fontWeight="semibold">💡 Growth Opportunity</Text>
-                <Text>{post.growthTip}</Text>
+                <Text fontWeight="semibold" mb={1}>💡 Growth Opportunity</Text>
+                <Text wordBreak="break-word" overflowWrap="anywhere">{post.growthTip}</Text>
               </Box>
               <Tooltip label="Copy growth tip">
                 <IconButton
