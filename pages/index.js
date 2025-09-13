@@ -177,7 +177,14 @@ export default function Home() {
 
   return (
     <Box minH="100vh" bg={pageBg}>
-      <Box borderBottomWidth="1px" bg={useColorModeValue('white', 'gray.800')}>
+      <Box
+        borderBottomWidth="1px"
+        bg={useColorModeValue('whiteAlpha.800', 'blackAlpha.400')}
+        sx={{ backdropFilter: 'saturate(180%) blur(6px)' }}
+        position="sticky"
+        top={0}
+        zIndex="docked"
+      >
         <Container py={4}>
           <Flex align="center" justify="space-between">
             <Heading size="md" color="brand.500">Reddit Trend Analyzer</Heading>
@@ -249,6 +256,14 @@ export default function Home() {
             </Alert>
           ) : null}
 
+          {!loading && !data ? (
+            <Box layerStyle="card" textAlign="center" py={16}>
+              <Text fontSize="4xl" mb={2}>🔎</Text>
+              <Heading size="md" mb={2}>Start your analysis</Heading>
+              <Text color="textMuted">Enter keywords or a subreddit above, then hit Analyze.</Text>
+            </Box>
+          ) : null}
+
           {loading ? (
             <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6}>
               <GridItem colSpan={{ base: 1, lg: 2 }}>
@@ -279,26 +294,17 @@ export default function Home() {
                     <Text>•</Text>
                     <Text>{data.totalPosts} {data.totalPosts === 1 ? 'post' : 'posts'}</Text>
                   </HStack>
-                  <HStack spacing={1}>
-                    <Button size="sm" variant={feedView === 'popular' ? 'solid' : 'outline'} onClick={() => { setFeedView('popular'); setSort('top'); setFilter('all'); }}>Popular</Button>
-                    <Button size="sm" variant={feedView === 'all' ? 'solid' : 'outline'} onClick={() => { setFeedView('all'); setFilter('all'); }}>All</Button>
-                    <Button size="sm" variant={feedView === 'trending' ? 'solid' : 'outline'} onClick={() => { setFeedView('trending'); setSort('comments'); setFilter('all'); }}>Trending</Button>
-                  </HStack>
                 </HStack>
               </Flex>
 
-              <SimpleGrid columns={{ base: 1, lg: 1 }} spacing={6}>
-                <GridItem colSpan={{ base: 1, lg: 1 }}>
-                  <SimpleGrid columns={{ base: 1 }} spacing={4}>
-                    {filteredSortedPosts.map((p, idx) => (
-                      <PostCard key={idx} post={p} onOpenImage={setImagePost} />
-                    ))}
-                  </SimpleGrid>
-                </GridItem>
-                <GridItem colSpan={1}>
-                  <Summary summary={data.summary} />
-                </GridItem>
-              </SimpleGrid>
+              <Stack spacing={6}>
+                <Summary summary={data.summary} />
+                <SimpleGrid columns={{ base: 1 }} spacing={4}>
+                  {filteredSortedPosts.map((p, idx) => (
+                    <PostCard key={idx} post={p} onOpenImage={setImagePost} />
+                  ))}
+                </SimpleGrid>
+              </Stack>
             </Stack>
           ) : null}
         </Stack>

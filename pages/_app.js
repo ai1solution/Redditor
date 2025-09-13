@@ -62,7 +62,7 @@ const theme = extendTheme({
   },
   components: {
     Container: {
-      defaultProps: { maxW: '7xl', px: 6 },
+      defaultProps: { maxW: { base: 'container.lg', lg: '85vw', xl: '80vw' }, px: { base: 4, md: 3 } },
     },
     Button: {
       defaultProps: { colorScheme: 'brand' },

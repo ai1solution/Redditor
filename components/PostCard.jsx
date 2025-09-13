@@ -15,9 +15,11 @@ import {
   useToast,
   Wrap,
   WrapItem,
+  AspectRatio,
+  Divider,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { ChevronUpIcon, ChevronDownIcon, CopyIcon } from '@chakra-ui/icons';
+import { ChevronUpIcon, ChevronDownIcon, CopyIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 
 function decodeHtml(str = '') {
   if (!str) return '';
@@ -87,15 +89,17 @@ export default function PostCard({ post, onOpenImage }) {
             </WrapItem>
           </Wrap>
 
-          <Heading size="sm" mb={3} wordBreak="break-word" overflowWrap="anywhere">
+          <Heading size="sm" mb={3} wordBreak="break-word" overflowWrap="anywhere" noOfLines={2}>
             <ChakraLink href={post.url} isExternal sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', display: 'inline' }}>
               {decodeHtml(post.title)}
             </ChakraLink>
           </Heading>
 
           {isImage ? (
-            <Box overflow="hidden" rounded="md" mb={3} cursor="zoom-in" onClick={() => onOpenImage?.(post)}>
-              <Image src={post.url} alt={post.title} objectFit="cover" w="100%" maxH="260px"/>
+            <Box overflow="hidden" rounded="md" mb={3} borderWidth="1px" borderColor={borderColor} cursor="zoom-in" onClick={() => onOpenImage?.(post)}>
+              <AspectRatio ratio={16/9} maxH="320px">
+                <Image src={post.url} alt={post.title} objectFit="cover" w="100%"/>
+              </AspectRatio>
             </Box>
           ) : null}
 
@@ -138,6 +142,48 @@ export default function PostCard({ post, onOpenImage }) {
               </Tooltip>
             </Box>
           ) : null}
+
+          {/* Action strip */}
+          <HStack pt={2} spacing={1} color="textMuted">
+            <Tooltip label="Open link">
+              <IconButton
+                aria-label="Open link"
+                icon={<ExternalLinkIcon />}
+                as={ChakraLink}
+                href={post.url}
+                isExternal
+                size="sm"
+                variant="ghost"
+              />
+            </Tooltip>
+            {isImage ? (
+              <Tooltip label="Open image">
+                <IconButton
+                  aria-label="Open image"
+                  icon={<ChevronUpIcon />}
+                  onClick={() => onOpenImage?.(post)}
+                  size="sm"
+                  variant="ghost"
+                />
+              </Tooltip>
+            ) : null}
+            <Tooltip label="Copy link">
+              <IconButton
+                aria-label="Copy link"
+                icon={<CopyIcon />}
+                size="sm"
+                variant="ghost"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(post.url || '');
+                    toast({ title: 'Copied', description: 'Post link copied to clipboard', status: 'success', duration: 1500 });
+                  } catch (_) {
+                    toast({ title: 'Failed to copy', status: 'error', duration: 1500 });
+                  }
+                }}
+              />
+            </Tooltip>
+          </HStack>
         </Box>
       </HStack>
     </MotionBox>
