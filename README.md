@@ -43,6 +43,18 @@ Open http://localhost:3000 in your browser.
 - Titles with HTML entities are decoded for display.
 - Image links are previewed when the `url` ends with an image extension.
 
-## Deployment
+## Deployment (Vercel)
 
-- Any standard Next.js hosting works. Ensure `NEXT_PUBLIC_WEBHOOK_URL` is set in the hosting environment.
+Deploying to Vercel is recommended.
+
+1. Push this repo to GitHub.
+2. Go to https://vercel.com and import the project.
+3. In Vercel Project Settings → Environment Variables, add:
+   - `NEXT_PUBLIC_WEBHOOK_URL` = `https://your-n8n-instance/webhook/reddit-analyze`
+4. Build Command: `next build` (auto-detected).
+5. Output: default Next.js (managed by Vercel). No extra config required.
+6. Deploy.
+
+Notes:
+- GitHub Pages config was removed. If you still see `.github/workflows/deploy.yml`, it’s disabled; you can delete it safely.
+- For local dev, keep `.env.local` with `NEXT_PUBLIC_WEBHOOK_URL`.
