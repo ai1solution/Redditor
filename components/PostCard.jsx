@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   HStack,
@@ -9,8 +9,13 @@ import {
   Text,
   Badge,
   useColorModeValue,
+  VStack,
+  IconButton,
+  Tooltip,
+  useToast,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
+import { ChevronUpIcon, ChevronDownIcon, CopyIcon } from '@chakra-ui/icons';
 
 function decodeHtml(str = '') {
   if (!str) return '';
@@ -27,6 +32,11 @@ export default function PostCard({ post, onOpenImage }) {
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const isImage = post?.url?.match(/\.(png|jpg|jpeg|gif|webp)$/i);
+  const toast = useToast();
+
+  const [vote, setVote] = useState(0); // -1, 0, 1
+  const baseUpvotes = post?.upvotes || 0;
+  const displayedUpvotes = useMemo(() => baseUpvotes + vote, [baseUpvotes, vote]);
 
   return (
     <MotionBox
@@ -39,49 +49,92 @@ export default function PostCard({ post, onOpenImage }) {
       whileHover={{ y: -4, boxShadow: 'var(--chakra-shadows-md)' }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
-      <HStack spacing={2} color="gray.500" fontSize="sm" mb={2}>
-        <ChakraLink href={`https://www.reddit.com/${post.subreddit?.replace(/^\//, '')}`} isExternal fontWeight="semibold">
-          {post.subreddit}
-        </ChakraLink>
-        <Text>•</Text>
-        <Text>Posted by</Text>
-        <ChakraLink href={`https://www.reddit.com/${post.author}`} isExternal>
-          {post.author}
-        </ChakraLink>
+      <HStack align="start" spacing={4}>
+        {/* Vote column */}
+        <VStack spacing={1} align="center" minW="40px">
+          <IconButton
+            aria-label="Upvote"
+            size="sm"
+            icon={<ChevronUpIcon />}
+            variant={vote === 1 ? 'solid' : 'ghost'}
+            colorScheme={vote === 1 ? 'brand' : 'gray'}
+            onClick={() => setVote((v) => (v === 1 ? 0 : 1))}
+          />
+          <Text fontWeight="semibold">{Intl.NumberFormat('en', { notation: 'compact' }).format(displayedUpvotes)}</Text>
+          <IconButton
+            aria-label="Downvote"
+            size="sm"
+            icon={<ChevronDownIcon />}
+            variant={vote === -1 ? 'solid' : 'ghost'}
+            colorScheme={vote === -1 ? 'gray' : 'gray'}
+            onClick={() => setVote((v) => (v === -1 ? 0 : -1))}
+          />
+        </VStack>
+
+        {/* Content */}
+        <Box flex="1">
+          <HStack spacing={2} color="gray.500" fontSize="sm" mb={1}>
+            <ChakraLink href={`https://www.reddit.com/${post.subreddit?.replace(/^\//, '')}`} isExternal fontWeight="semibold" color="redditBlue">
+              {post.subreddit}
+            </ChakraLink>
+            <Text>•</Text>
+            <Text>Posted by</Text>
+            <ChakraLink href={`https://www.reddit.com/${post.author}`} isExternal>
+              {post.author}
+            </ChakraLink>
+          </HStack>
+
+          <Heading size="sm" mb={2}>
+            <ChakraLink href={post.url} isExternal>{decodeHtml(post.title)}</ChakraLink>
+          </Heading>
+
+          {isImage ? (
+            <Box overflow="hidden" rounded="md" mb={3} cursor="zoom-in" onClick={() => onOpenImage?.(post)}>
+              <Image src={post.url} alt={post.title} objectFit="cover" w="100%" maxH="300px"/>
+            </Box>
+          ) : null}
+
+          <HStack spacing={4} color="gray.600" fontSize="sm" mb={3}>
+            <Text>💬 {Intl.NumberFormat('en', { notation: 'compact' }).format(post.comments)} comments</Text>
+            <Tag size="sm" colorScheme={post.engagement === 'high' ? 'green' : post.engagement === 'medium' ? 'orange' : 'gray'}>
+              {post.engagement} engagement
+            </Tag>
+            <Badge colorScheme="blue" variant="subtle">AI</Badge>
+          </HStack>
+
+          {post.aiInsight ? (
+            <Box bg={useColorModeValue('orange.50', 'orange.900')} p={3} rounded="md" mb={2}>
+              <Text fontWeight="semibold">AI Insight:</Text>
+              <Text>{post.aiInsight}</Text>
+            </Box>
+          ) : null}
+
+          {post.growthTip ? (
+            <Box bg={useColorModeValue('purple.50', 'purple.900')} p={3} rounded="md" display="flex" alignItems="start" justifyContent="space-between" gap={3}>
+              <Box>
+                <Text fontWeight="semibold">💡 Growth Opportunity</Text>
+                <Text>{post.growthTip}</Text>
+              </Box>
+              <Tooltip label="Copy growth tip">
+                <IconButton
+                  aria-label="Copy growth tip"
+                  icon={<CopyIcon />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(post.growthTip || '');
+                      toast({ title: 'Copied', description: 'Growth tip copied to clipboard', status: 'success', duration: 1500 });
+                    } catch (_) {
+                      toast({ title: 'Failed to copy', status: 'error', duration: 1500 });
+                    }
+                  }}
+                />
+              </Tooltip>
+            </Box>
+          ) : null}
+        </Box>
       </HStack>
-
-      <Heading size="sm" mb={2}>
-        <ChakraLink href={post.url} isExternal>{decodeHtml(post.title)}</ChakraLink>
-      </Heading>
-
-      {isImage ? (
-        <Box overflow="hidden" rounded="md" mb={3} cursor="zoom-in" onClick={() => onOpenImage?.(post)}>
-          <Image src={post.url} alt={post.title} objectFit="cover" w="100%" maxH="300px"/>
-        </Box>
-      ) : null}
-
-      <HStack spacing={4} color="gray.600" fontSize="sm" mb={3}>
-        <Text>⬆️ {Intl.NumberFormat('en', { notation: 'compact' }).format(post.upvotes)}</Text>
-        <Text>💬 {Intl.NumberFormat('en', { notation: 'compact' }).format(post.comments)} comments</Text>
-        <Tag size="sm" colorScheme={post.engagement === 'high' ? 'green' : post.engagement === 'medium' ? 'orange' : 'gray'}>
-          {post.engagement} engagement
-        </Tag>
-        <Badge colorScheme="blue" variant="subtle">AI</Badge>
-      </HStack>
-
-      {post.aiInsight ? (
-        <Box bg={useColorModeValue('orange.50', 'orange.900')} p={3} rounded="md" mb={2}>
-          <Text fontWeight="semibold">AI Insight:</Text>
-          <Text>{post.aiInsight}</Text>
-        </Box>
-      ) : null}
-
-      {post.growthTip ? (
-        <Box bg={useColorModeValue('purple.50', 'purple.900')} p={3} rounded="md">
-          <Text fontWeight="semibold">💡 Growth Opportunity</Text>
-          <Text>{post.growthTip}</Text>
-        </Box>
-      ) : null}
     </MotionBox>
   );
 }

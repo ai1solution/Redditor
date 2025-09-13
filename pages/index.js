@@ -124,10 +124,10 @@ export default function Home() {
 
   return (
     <Box minH="100vh" bg={pageBg}>
-      <Box borderBottomWidth="1px" bg={useColorModeValue('white', 'gray.800')}> 
+      <Box borderBottomWidth="1px" bg={useColorModeValue('white', 'gray.800')} boxShadow={useColorModeValue('sm', 'sm')}> 
         <Container maxW="6xl" py={4}>
           <Flex align="center" justify="space-between">
-            <Heading size="md">Reddit Trend Analyzer</Heading>
+            <Heading size="md" color="brand.500">Reddit Trend Analyzer</Heading>
             <Button onClick={toggleColorMode} leftIcon={<Icon as={colorMode === 'light' ? MoonIcon : SunIcon} /> }>
               {colorMode === 'light' ? 'Dark' : 'Light'}
             </Button>
@@ -138,7 +138,7 @@ export default function Home() {
       <Container maxW="6xl" py={8}>
         <Stack spacing={6}>
           <Box as="form" onSubmit={onSubmit} bg={useColorModeValue('white', 'gray.800')} p={6} rounded="md" shadow="sm">
-            <Heading size="md" mb={1}>Create Analysis</Heading>
+            <Heading size="md" mb={1} color={useColorModeValue('gray.800', 'white')}>Create Analysis</Heading>
             <Text color="gray.500" mb={4}>Analyze Reddit trends and find growth opportunities</Text>
 
             <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
@@ -153,7 +153,7 @@ export default function Home() {
             </SimpleGrid>
 
             <Flex mt={4} gap={3} align="center" wrap="wrap">
-              <Button type="submit" colorScheme="orange" isLoading={loading} loadingText="Analyzing...">Analyze</Button>
+              <Button type="submit" colorScheme="brand" isLoading={loading} loadingText="Analyzing...">Analyze</Button>
               <HStack>
                 <Tooltip label="Filter posts by engagement">
                   <Select size="sm" value={filter} onChange={(e) => setFilter(e.target.value)} w="auto">
@@ -206,7 +206,7 @@ export default function Home() {
           {data ? (
             <Stack spacing={6}>
               <Flex align="center" justify="space-between">
-                <Heading size="md">Analysis Results</Heading>
+                <Heading size="md" color={useColorModeValue('gray.800', 'white')}>Analysis Results</Heading>
                 <HStack color="gray.500" fontSize="sm">
                   <Text>{new Date(data.timestamp).toLocaleString()}</Text>
                   <Text>•</Text>
