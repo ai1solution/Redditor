@@ -133,9 +133,10 @@ export default function Home() {
         return;
       }
 
-      const body = {};
-      if (keywords) body.keywords = keywords;
-      if (subreddit) body.subreddit = subreddit;
+      const body = {
+        keywords: keywords || '',
+        subreddit: subreddit || ''
+      };
 
       const res = await fetch(WEBHOOK_URL, {
         method: 'POST',
